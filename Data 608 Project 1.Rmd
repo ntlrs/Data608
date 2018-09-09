@@ -1,0 +1,177 @@
+---
+title: "Data 608 - Assignment 1"
+author: "Natalie Mollaghan"
+date: "9/8/2018"
+output: html_document
+---
+```{r}
+library(ggplot2)
+library(psych)
+library(dplyr)
+```
+
+**Principles of Data Visualization and Introduction to ggplot2**
+
+I have provided you with data about the 5,000 fastest growing companies in the US, as compiled by Inc. magazine. lets read this in:
+
+```{r}
+
+inc <- read.csv("https://raw.githubusercontent.com/charleyferrari/CUNY_DATA_608/master/module1/Data/inc5000_data.csv", header= TRUE)
+
+```
+
+And lets preview this data:
+
+```{r}
+
+head(inc)
+
+```
+```{r}
+
+summary(inc)
+
+```
+
+Think a bit on what these summaries mean. Use the space below to add some more relevant non-visual exploratory information you think helps you understand this data:
+
+```{r}
+#total revenue across all industries
+sum(inc$Revenue)
+```
+
+
+```{r}
+#number of companies by Industry
+inc_industry <- inc %>%
+  select(Industry) %>%
+  group_by(Industry) %>%
+  count(Industry) %>%
+  arrange(desc(n))
+inc_industry
+```
+```{r}
+#total revenue by Industry
+inc_revenue<- inc %>%
+   select(Industry, Revenue) %>%
+   group_by(Industry) %>%
+   summarise('Revenue by Industry' = sum(Revenue)) %>%
+   arrange(desc(`Revenue by Industry`))
+inc_revenue
+```
+```{r}
+#average revenue by industry
+avg_rev_ind <- merge(inc_industry, inc_revenue, on = Industry)
+avg_rev_ind %>%
+  mutate(`Avg. Rev. By Industry` = `Revenue by Industry` / n) %>%
+  arrange(desc(`Avg. Rev. By Industry`))
+```
+
+```{r}
+#revenue by state
+inc %>%
+  select(State, Revenue) %>%
+  group_by(State) %>%
+  summarise('Revenue by State' = sum(Revenue)) %>%
+  arrange(desc(`Revenue by State`))
+```
+```{r}
+employees_by_ind <- inc %>%
+   select(Industry, Employees) %>%
+   group_by(Industry) %>%
+   summarise(`Employees By Industry` = sum(Employees)) %>%
+   arrange(desc(`Employees By Industry`))
+employees_by_ind
+```
+
+
+```{r}
+#number of companies by industry by state
+ind_by_state <- inc %>%
+  select(State, Industry) %>%
+  group_by(State) %>%
+  count(Industry) %>%
+  arrange(desc(n))
+ind_by_state
+```
+
+
+```{r}
+#
+inc_avg_growth <- inc %>%
+  select(Industry, Growth_Rate) %>%
+  group_by(Industry) %>%
+  summarise(`Avg. Growth Rate` = mean(Growth_Rate), `Min Growth Rate` = min(Growth_Rate), `Max Growth Rate` = max(Growth_Rate)) %>%
+  arrange(desc(`Avg. Growth Rate`))
+inc_avg_growth  
+```
+```{r}
+inc_employees <- inc %>%
+  select(Industry, Employees) %>%
+  group_by(Industry) %>%
+  summarise(`Avg. No. Employees` = mean(Employees), `Min No. Employees` = min(Employees), `Max No. Employees` = max(Employees)) %>%
+  arrange(desc(`Avg. No. Employees`))
+inc_employees
+```
+
+## Question 1
+
+Create a graph that shows the distribution of companies in the dataset by State (ie how many are in each state). There are a lot of States, so consider which axis you should use. This visualization is ultimately going to be consumed on a 'portrait' oriented screen (ie taller than wide), which should further guide your layout choices.
+
+```{r}
+company_by_state <- inc %>%
+  select(State) %>%
+  group_by(State) %>%
+  count(State) %>%
+  filter(n != 0) %>%
+  arrange(desc(n))
+
+ggplot(company_by_state, aes(x = reorder(State, n), y = n, fill = n)) +
+   geom_bar(position="dodge", stat="identity") +
+   coord_flip() +
+  ggtitle("Number of Companies by State") +
+ ylab("Number Of Companies")+
+  xlab("States")
+```
+
+
+## Quesiton 2
+
+Lets dig in on the state with the 3rd most companies in the data set. Imagine you work for the state and are interested in how many people are employed by companies in different industries. Create a plot that shows the average and/or median employment by industry for companies in this state (only use cases with full data, use R's `complete.cases()` function.) In addition to this, your graph should show how variable the ranges are, and you should deal with outliers.
+
+```{r}
+emp_by_ind <- inc %>%
+  filter(State == 'NY') %>%
+  select(State, Employees, Industry) %>%
+  group_by(Industry, Employees) %>%
+  summarise(`Median Employment By Industry` = median(Employees), `Average Employment By Industry` = mean(Employees), `Min Employment` = min(Employees), `Max Employment` = max(Employees)) 
+
+emp_by_ind <- emp_by_ind[complete.cases(emp_by_ind),]
+h <- mean(emp_by_ind$Employees)
+ggplot(emp_by_ind, aes(x = Industry, y = Employees)) +
+  geom_boxplot() +
+  geom_hline(yintercept = h)+
+  coord_flip() +
+  scale_y_continuous(trans='log2') +
+  ggtitle("NY State Employment Range by Industy")
+```
+
+
+## Question 3
+
+Now imagine you work for an investor and want to see which industries generate the most revenue per employee. Create a chart that makes this information clear. Once again, the distribution per industry should be shown.
+
+```{r}
+ind_rev_by_emp <- merge(employees_by_ind, inc_revenue, on = Industry)
+
+ind_rev_by_emp %>%
+  mutate(`Revenue Per Employee By Industry` = `Revenue by Industry` / `Employees By Industry`) %>%
+  arrange(desc(`Revenue Per Employee By Industry`))
+
+ggplot(ind_rev_by_emp, aes(x = reorder(Industry, `Revenue by Industry`) , y = `Revenue by Industry`, fill = `Employees By Industry`)) +
+   geom_bar(position="dodge", stat="identity") +
+   coord_flip() +
+  ggtitle("Revenue Per Employee By Industry") +
+ ylab("Revenue")+
+  xlab("Industry")
+```
