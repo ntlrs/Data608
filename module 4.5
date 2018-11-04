@@ -1,0 +1,19 @@
+from flask import Flask, jsonify
+import pandas as pd
+
+app = Flask(__name__)
+
+url = ('https://data.cityofnewyork.us/resource/nwxe-4ae8.json?' +\
+        '$select=spc_common,steward,count(tree_id)' +\
+        '&$group=spc_common, steward').replace(' ', '%20')
+
+all_trees = pd.read_json(url)
+
+trees = all_trees['spc_common'].unique()
+
+@app.route('/trees', methods=['GET'])
+def nyc_trees():
+    return jsonify({'list of trees': trees})
+
+if __name__ == '__main__':
+    app.run()
