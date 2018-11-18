@@ -1,0 +1,88 @@
+<html>
+
+<meta charset="utf-8">
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.7.4/d3.min.js"></script>
+
+<head><title>Data 608- Module 5, Part 1</title></head>
+
+
+<h3>Reverse A Word</h3>
+
+
+<body>
+
+
+
+<div>
+
+
+	<script type="text/javascript">
+	function reverseLetters(string) {
+		var ans = '';
+		ans = string.split("").reverse().join("").split(" ").reverse().join(" ");
+		return (ans);
+ 	};
+
+	function print_ans(){
+    	var t = document.getElementById("rev");
+    	t.innerHTML = reverseLetters(document.getElementById('words').value);
+	};	
+	</script>
+
+	<form>
+		<input id="words" type="text" size="18">
+		<input type="button" value="reverse it" onClick=print_ans()>
+	</form>
+
+	<div id="rev"></div>
+
+</div>
+<br></br>
+<div>
+
+<h3>Multiply A Number</h3>
+
+<script type="text/javascript">
+
+function DisplayTable(){
+  /* first, input values for table */
+  var cols = 5;
+  var rows = 4;
+  var a = document.getElementById('num').value;
+  var b = 1;
+  /* create a buffer variable for the new html code & put a opening table tag in it (with a border for clearity) */
+  var htmlBuffer = "<table border='1'>";
+  
+  for (var i = 1; i <= cols; i++){ 
+
+    /* add a opening table row tag to the buffer */
+    htmlBuffer += "<tr>";
+    
+    for (var j = 1; j <= rows; j++) {
+      /* add a table cell with the multiplication inside it to the buffer */
+      htmlBuffer += "<td>"+ (a*b) + "</td>";
+      b = b+1;
+    }
+    
+    /* add a closing table row tag to the buffer */
+    htmlBuffer += "</tr>";
+  }
+  
+  /* add a closing table tag to the buffer */
+  htmlBuffer += "</table>";
+  
+  /* print/put generated html code inside the DIV element */
+  document.getElementById("mult").innerHTML = htmlBuffer;
+};
+</script>
+
+<form>
+  <input id="num" type="number" size="18">
+  <input type="button" value="multitply it" onClick=DisplayTable()>
+</form>
+
+<div id="mult"></div>
+
+
+</body>
+</html>
